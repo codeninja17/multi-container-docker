@@ -1,0 +1,42 @@
+services:
+  coupon-service:
+    build:
+      context: ./couponservice
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - '9091:9091'
+    environment:
+      - spring.datasource.url=jdbc:mysql://mysql-service:3306/mydb
+    depends_on:
+      - mysql-service
+  product-service:
+    build:
+      context: ./productservice
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - '9090:9090'
+    environment:
+      - spring.datasource.url=jdbc:mysql://mysql-service:3306/mydb
+      - couponService.url=http://coupon-service:9091/couponapi/coupons/
+    depends_on:
+      - mysql-service
+
+  mysql-service:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'mydb'
+      MYSQL_ROOT_PASSWORD: 'root'
+
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      -  my-db:/var/lib/mysql
+volumes:
+  my-db:
+
